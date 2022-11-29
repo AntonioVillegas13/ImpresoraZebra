@@ -1,33 +1,57 @@
 import { StatusBar } from 'expo-status-bar';
+import { useState,useEffect } from 'react';
 import { Alert, Button, StyleSheet, Text, View } from 'react-native';
 import RNZebraBluetoothPrinter from 'react-native-zebra-bluetooth-printer';
 
 
 export default function App() {
-  const zpl = "^XA^FX Top section with company logo, name and address.^CF0,60^FO50,50^GB100,100,100^FS^ FO75,75 ^ FR ^ GB100, 100, 100 ^ FS^ FO88, 88 ^ GB50, 50, 50 ^ FS ^XZ";
-  const Verificar=()=>{
-    RNZebraBluetoothPrinter.pairedDevices().then((deviceArray) => {
-     console.log(deviceArray[0]);
-     let impresora=deviceArray[0].address;
-     RNZebraBluetoothPrinter.print(impresora,zpl).then((res) => {
-      Alert.alert("ridi bien");
-     })
-    })
+  const zpl = "BARCODE 128 1 1 50 150 10 HORIZ.";
+const zplArray = ["^XA^CFA,30^FO30,30^FDPage one^FS^XZ", "^XA^CFA,30^FO30,30^FDPage two^FS^XZ", "^XA^CFA,30^FO30,30^FDPage three^FS^XZ"];
 
+const [printer,setprinter]=useState();
+useEffect(() => {
+  ConectarImpresora();
+}, []);
 
+  const ConectarImpresora=async()=>{
 
-    
+   
+    const dispositivos=await RNZebraBluetoothPrinter.pairedDevices();
+    const impresora=dispositivos.filter((device) => device.class === 1664);
+    //console.log(impresora)
+    const p = impresora.length ? impresora[0] : null;
+        if (p === null) {
+            console.warn("unable to find printer. Found devices:", dispositivos);
+        }
+        console.log(p)
+        setprinter(p);
 
-
-    
   }
+
+
+  const print=async()=>
+  {
+ 
+    console.log("printer addres:",printer.address)
+    await RNZebraBluetoothPrinter.print(
+      "AC:3F:A4:A1:E9:4B",
+      zpl).then((res)=>{
+        console.log(res)
+      }).catch(error => console.log(error.message));
+
+  }
+
+
+
+    
+
 
   return (
     <View style={styles.container}>
       <Text>Open up App.js to start working on your app!</Text>
       <Button 
       title='VERIFIACAR'
-      onPress={Verificar}
+      onPress={print}
       />
       <StatusBar style="auto" />
     </View>
